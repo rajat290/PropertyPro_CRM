@@ -4,7 +4,8 @@ CREATE TABLE users (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(150) UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
-  role VARCHAR(20) CHECK (role IN ('agent', 'admin')) NOT NULL,
+role VARCHAR(20) CHECK (role IN ('agent', 'admin')) NOT NULL,
+  token_version INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

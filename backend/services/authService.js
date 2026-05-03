@@ -1,9 +1,10 @@
 import bcrypt from 'bcrypt';
 import * as userModel from '../models/userModel.js';
+import jwt from 'jsonwebtoken';
 
 export const registerUser = async (userData) => {
     const { name, email, password, role } = userData;
-    
+
     // Basic validation
     if (!name || !email || !password || !role) {
         throw new Error('Missing required fields: name, email, password, role');
@@ -15,7 +16,7 @@ export const registerUser = async (userData) => {
     if (!emailRegex.test(email)) {
         throw new Error('Invalid email format');
     }
-    
+
     // Check if user already exists
     const existingUser = await userModel.findUserByEmail(email);
     if (existingUser) {
@@ -31,3 +32,35 @@ export const registerUser = async (userData) => {
     return newUser;
 
 };
+
+//login 
+
+export const loginUser = async (email, password) => {
+    //1. find user 
+    const user = await userModel.findUserByEmail(email);
+
+    if (!user) {
+        throw new Error('Invalid email or password');
+    }
+
+    //2. compare password 
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+        throw new Error('Invalid email or password');
+    }
+    //3. genrate JWT 
+    const token = jwt.sign(
+        {
+            id: user.id,
+            role: user.role,
+            token_version: user.token_version
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    // return user (without password) and token
+    const { password_hash, ...userWithoutPassword } = user;
+    return { user: userWithoutPassword, token };
+
+}
